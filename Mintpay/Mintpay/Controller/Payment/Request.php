@@ -75,7 +75,7 @@ class Request extends \Mintpay\Mintpay\Controller\AbstractCheckoutRedirectAction
             'ip'                    => $order->getRemoteIp(),
             'x_forwarded_for'       => $order->getXForwardedFor(),
             'delivery_street'       => $address,
-            'delivery_region'       => $order->getShippingAddress()->getCity(),
+            'delivery_region'       => $order->getShippingAddress()->getRegion(),
             'delivery_postcode'     => $order->getShippingAddress()->getPostcode(),
             'cart_created_date'     => $order->getCreatedAt(),
             'cart_updated_date'     => $order->getUpdatedAt(),
@@ -94,7 +94,7 @@ class Request extends \Mintpay\Mintpay\Controller\AbstractCheckoutRedirectAction
         else{
         	if(isset($response['message']) && $response['message']=='Success'){
 
-        		#return $this->getResults($response);        
+        		#return $this->getResults($order_data);        
         		echo $this->getMintpayRequest($response['data'],$customerSession->isLoggedIn());
         	}
 
