@@ -1,23 +1,19 @@
 {
-    "name": "mintpay/mintpay",
-    "description": "Mintpay payment gateway integration",
-    "require": {
-        "php": "~5.5.0|~5.6.0|~7.0.0",
-        "magento/module-sales": "100.0.*",
-        "magento/module-checkout": "100.0.*",
-        "magento/module-payment": "100.0.*",
-        "magento/framework": "100.0.*",
-        "magento/magento-composer-installer": "100.0.*"
-    },
+    "name": "mintpay/module-mintpay",
+    "description": "Mintpay Payment Gateway",
     "type": "magento2-module",
-    "version": "100.0.3",
-    "license": [
-        "OSL-3.0",
-        "AFL-3.0"
+    "license": "OSL-3.0",
+    "authors": [
+        {
+            "email": "kukarajt@mintpay.lk",
+            "name": "Kukaraj"
+        }
     ],
+    "minimum-stability": "dev",
+    "require": {},
     "autoload": {
-        "files": [ 
-            "registration.php" 
+        "files": [
+            "registration.php"
         ],
         "psr-4": {
             "Mintpay\\Mintpay\\": ""

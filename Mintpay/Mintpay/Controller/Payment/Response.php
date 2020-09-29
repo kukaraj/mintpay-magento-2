@@ -1,56 +1,101 @@
 <?php
+/**
+ * Mintpay Payment Gateway
+ * Copyright (C) 2019 
+ * 
+ * This file included in Mintpay/Mintpay is licensed under OSL 3.0
+ * 
+ * http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * Please see LICENSE.txt for the full text of the OSL 3.0 license
+ */
+
 namespace Mintpay\Mintpay\Controller\Payment;
 
-class Response extends \Mintpay\Mintpay\Controller\AbstractCheckoutRedirectAction
+class Response extends \Magento\Framework\App\Action\Action
 {
-	public function execute()
-	{		
-		
-		//If payment getway response is empty then redirect to home page directory.		
-		if(!isset($_GET['hash'])){
-			$this->_redirect('');
-			return;
-		}
 
-		
-		$order_id 		 	= $_GET['orderId'];
-		//Get the object of current order.
-		$order = $this->getOrderDetailByOrderId($order_id); 
+    protected $orderFactory;
+    protected $scopeConfig;
+    protected $urlBuilder;
+    protected $checkoutSession;
 
-		//If order is empty then redirect to home page. Because order is not avaialbe.
-		if(empty($order)) {
-			$this->_redirect('');
-			return;
-		}
+    /**
+     * Constructor
+     *
+     * @param \Magento\Framework\App\Action\Context  $context
+     * @param \Magento\Framework\View\Result\PageFactory $resultPageFactory
+     */
+    public function __construct(
+        \Magento\Framework\App\Action\Context $context,
+        \Magento\Sales\Model\OrderFactory $orderFactory,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Magento\Framework\UrlInterface $urlBuilder,
+        \Magento\Checkout\Model\Session $checkoutSession
+    ) {
+        $this->orderFactory = $orderFactory;
+        $this->scopeConfig = $scopeConfig->getValue('payment/mintpay');
+        $this->urlBuilder = $urlBuilder;
+        $this->checkoutSession = $checkoutSession;
+        parent::__construct($context);
+    }
+
+    /**
+     * Execute view action
+     *
+     * @return \Magento\Framework\Controller\ResultInterface
+     */
+    public function execute()
+    {
+       //If payment getway response is empty then redirect to home page directory.      
+        if(!isset($_GET['hash'])){
+            $this->_redirect('');
+            return;
+        }
+
+        
+        $orderId           = $_GET['orderId'];
+        //Get the object of current order.
+        $order = $this->orderFactory->create()->loadByIncrementId($orderId); 
+
+        //If order is empty then redirect to home page. Because order is not avaialbe.
+        if(empty($order)) {
+            $this->_redirect('');
+            return;
+        }
+
+        $merchantSecret = $this->scopeConfig['merchant_secret'];
+        $merchantId = $this->scopeConfig['merchant_id'];
+        $totalPrice = round($order->getGrandTotal(),2);
+        $orderEntityId = $order->getEntityId();
 
 
-		$order_data = array(
-            'merchant_id'           => $this->objConfigSettings['merchant_id'],
-            'order_id'              => $order->getEntityId(),
-            'total_price'           => round($order->getGrandTotal(),2)
-        );
 
-        $fail_data = array(
-        	'order_id' => $order_id
-        );
+        if(base64_decode($_GET['hash']) == hash_hmac('sha256',$merchantId . $totalPrice .  $orderEntityId, $merchantSecret)){
+            //Set the complete status when payment is completed.
+            $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
+            $order->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING);
+            $order->save();             
 
-		if(base64_decode($_GET['hash']) == $this->getHashValidate($order_data)){
-			//Set the complete status when payment is completed.
-			$order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
-			$order->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING);
-			$order->save();				
+            $this->checkoutSession->setLastSuccessQuoteId($order->getQuoteId());
+            $this->checkoutSession->setLastQuoteId($order->getQuoteId());
+            $this->checkoutSession->setLastOrderId($order->getEntityId()); // Required, otherwise getOrderId() is empty on success.phtml
+            $this->checkoutSession->setLastRealOrderId($order->getIncrementId());
 
-			return $this->executeSuccessAction($order);
+            $resultRedirect = $this->resultRedirectFactory->create();
+            $resultRedirect->setPath('checkout/onepage/success',  array('_secure'=>true));
+            return $resultRedirect;
 
-		}elseif(base64_decode($_GET['hash']) == $this->getHashValidate($fail_data)){
+        }else if(base64_decode($_GET['hash']) == hash_hmac('sha256', $orderEntityId, $merchantSecret)){
+            $comment = '';
+            $order->registerCancellation($comment)->save();
+            $this->checkoutSession->restoreQuote();
+            $this->_redirect('checkout/cart');
 
-			$this->executeCancelAction();
-
-		}else{
-			
-			$this->_redirect('');
-			return;
-		}
-		
-	}
+        }else{
+            
+            $this->_redirect('');
+            return;
+        }
+        
+    }
 }

@@ -19,15 +19,6 @@ class Mintpay extends \Magento\Payment\Model\Method\AbstractMethod
      * @var string
      */
     protected $_code = 'mintpay';
-
-    /**
-     * Availability option
-     *
-     * @var bool
-     */
-    protected $_isOffline = false;
-
-
   
 
 }
