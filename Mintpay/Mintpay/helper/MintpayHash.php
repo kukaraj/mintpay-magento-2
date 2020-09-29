@@ -2,7 +2,9 @@
 
 namespace Mintpay\Mintpay\Helper;
 
-class MintpayHash
+use \Magento\Framework\App\Helper\AbstractHelper;
+
+class MintpayHash extends AbstractHelper
 {
 	private $params, $hashValue;
 
