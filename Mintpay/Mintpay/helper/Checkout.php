@@ -3,8 +3,9 @@
 namespace Mintpay\Mintpay\Helper;
 
 use Magento\Sales\Model\Order;
+use \Magento\Framework\App\Helper\AbstractHelper;
 
-class Checkout
+class Checkout extends AbstractHelper
 {
     protected $_checkoutSession;
 
