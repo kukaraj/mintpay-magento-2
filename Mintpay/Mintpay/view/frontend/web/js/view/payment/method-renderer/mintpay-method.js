@@ -18,9 +18,6 @@ define(
             },
 			redirectAfterPlaceOrder: false,
             /** Returns send check to info */
-            getMailingAddress: function() {
-                return window.checkoutConfig.payment.checkmo.mailingAddress;
-            },
 			afterPlaceOrder: function () {
                window.location.replace(url.build('mintpay/payment/request'));
             },
