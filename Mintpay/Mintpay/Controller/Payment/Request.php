@@ -70,8 +70,8 @@ class Request extends \Magento\Framework\App\Action\Action
             return;
         }
         
-        $order->setState(\Magento\Sales\Model\Order::STATE_PENDING_PAYMENT);
-        $order->setStatus(\Magento\Sales\Model\Order::STATE_PENDING_PAYMENT);
+        $order->setState(\Magento\Sales\Model\Order::STATE_CANCELED);
+        $order->setStatus(\Magento\Sales\Model\Order::STATE_CANCELED);
         $order->save();
 
         
@@ -187,7 +187,8 @@ class Request extends \Magento\Framework\App\Action\Action
             echo $strHtml;
         }
 
-        else if ($order->getId() && $order->getState() != Order::STATE_CANCELED) {
+        //else if ($order->getId() && $order->getState() != Order::STATE_CANCELED) {
+        else if ($order->getId()) {
             $order->registerCancellation($comment)->save();
             $this->checkoutSession->restoreQuote();
             $this->_redirect('checkout/cart');

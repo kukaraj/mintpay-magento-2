@@ -72,9 +72,9 @@ class Response extends \Magento\Framework\App\Action\Action
 
         if(base64_decode($_GET['hash']) == hash_hmac('sha256',$merchantId . $totalPrice .  $orderEntityId, $merchantSecret)){
             //Set the complete status when payment is completed.
-            $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
-            $order->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING);
-            $order->save();             
+            //$order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
+            //$order->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING);
+            //$order->save();             
 
             $this->checkoutSession->setLastSuccessQuoteId($order->getQuoteId());
             $this->checkoutSession->setLastQuoteId($order->getQuoteId());
