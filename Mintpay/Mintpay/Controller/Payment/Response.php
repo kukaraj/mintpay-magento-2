@@ -18,6 +18,7 @@ class Response extends \Magento\Framework\App\Action\Action
     protected $scopeConfig;
     protected $urlBuilder;
     protected $checkoutSession;
+    protected $orderSender;
 
     /**
      * Constructor
@@ -30,12 +31,14 @@ class Response extends \Magento\Framework\App\Action\Action
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\UrlInterface $urlBuilder,
-        \Magento\Checkout\Model\Session $checkoutSession
+        \Magento\Checkout\Model\Session $checkoutSession,
+        \Magento\Sales\Model\Order\Email\Sender\OrderSender $orderSender
     ) {
         $this->orderFactory = $orderFactory;
         $this->scopeConfig = $scopeConfig->getValue('payment/mintpay');
         $this->urlBuilder = $urlBuilder;
         $this->checkoutSession = $checkoutSession;
+        $this->orderSender = $orderSender;
         parent::__construct($context);
     }
 
@@ -72,14 +75,19 @@ class Response extends \Magento\Framework\App\Action\Action
 
         if(base64_decode($_GET['hash']) == hash_hmac('sha256',$merchantId . $totalPrice .  $orderEntityId, $merchantSecret)){
             //Set the complete status when payment is completed.
-            //$order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
-            //$order->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING);
-            //$order->save();             
+            $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING);
+            $order->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING);
+            $order->save();             
 
             $this->checkoutSession->setLastSuccessQuoteId($order->getQuoteId());
             $this->checkoutSession->setLastQuoteId($order->getQuoteId());
             $this->checkoutSession->setLastOrderId($order->getEntityId()); // Required, otherwise getOrderId() is empty on success.phtml
             $this->checkoutSession->setLastRealOrderId($order->getIncrementId());
+
+            $order->setCanSendNewEmailFlag(true);
+            $order->save();
+            $this->checkoutSession->setForceOrderMailSentOnSuccess(true);
+            $this->orderSender->send($order, true);
 
             $resultRedirect = $this->resultRedirectFactory->create();
             $resultRedirect->setPath('checkout/onepage/success',  array('_secure'=>true));
