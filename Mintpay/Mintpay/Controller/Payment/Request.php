@@ -70,9 +70,6 @@ class Request extends \Magento\Framework\App\Action\Action
             return;
         }
         
-        $order->setState(\Magento\Sales\Model\Order::STATE_CANCELED);
-        $order->setStatus(\Magento\Sales\Model\Order::STATE_CANCELED);
-        $order->save();
 
         
         //Get the selected product name from the OrderFactory object.
