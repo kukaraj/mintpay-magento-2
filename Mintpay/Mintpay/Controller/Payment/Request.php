@@ -69,7 +69,10 @@ class Request extends \Magento\Framework\App\Action\Action
             $this->_redirect('');
             return;
         }
-        
+
+        $order->setState(\Magento\Sales\Model\Order::STATE_PENDING_PAYMENT);
+        $order->setStatus(\Magento\Sales\Model\Order::STATE_PENDING_PAYMENT);
+        $order->save();        
 
         
         //Get the selected product name from the OrderFactory object.
